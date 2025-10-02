@@ -922,10 +922,10 @@ export const translations = {
       },
       "noImagesInAlbum": "此相册中还没有设计。"
     },
-    "comingSoon": { "title": "即将推出", "subtitle": "“{0}” 页面正在建设中。敬请期待！" },
+    "comingSoon": { "title": "即将推出", "subtitle": "{0} 页面正在建设中。敬请期待！" },
     "results": { "placeholder": "您生成的设计将显示在这里", "placeholderDesc": "在左侧面板中上传房间照片并描述风格以开始。", "advisorPlaceholder": "您的顾问回复将显示在这里", "advisorPlaceholderDesc": "在左侧面板中提出设计问题以获取专家建议。", "regenerate": "重新生成", "download": "下载", "generationFailed": "生成失败", "retry": "重试" },
     "auth": { "signIn": "登录", "signUp": "注册", "emailPlaceholder": "输入您的电子邮件", "passwordPlaceholder": "密码", "createAccount": "创建账户", "signedInAs": "登录为", "orDivider": "或", "continueWithGoogle": "使用 Google 继续", "continueWithApple": "使用 Apple 继续" },
-    "notifications": { "title": "通知", "markAllRead": "全部标为已读", "items": { "genCompleteTitle": "设计完成！", "genCompleteDesc": "您的5个设计已准备好查看。", "newTemplateTitle": "新模板包", "newTemplateDesc": ""日式禅意"风格包现已推出。", "welcomeTitle": "欢迎来到MyNook！", "welcomeDesc": "我们很高兴您能加入。" }, "time": { "minutesAgo": "{0}分钟前", "hourAgo": "{0}小时前", "dayAgo": "{0}天前" } },
+    "notifications": { "title": "通知", "markAllRead": "全部标为已读", "items": { "genCompleteTitle": "设计完成！", "genCompleteDesc": "您的5个设计已准备好查看。", "newTemplateTitle": "新模板包", "newTemplateDesc": "日式禅意风格包现已推出。", "welcomeTitle": "欢迎来到MyNook！", "welcomeDesc": "我们很高兴您能加入。" }, "time": { "minutesAgo": "{0}分钟前", "hourAgo": "{0}小时前", "dayAgo": "{0}天前" } },
     "userMenu": { "myAccount": "我的账户", "settings": "设置", "signOut": "退出登录" },
     "camera": { "title": "相机", "error": "相机访问被拒绝。请在您的浏览器设置中允许相机访问。", "retake": "重拍", "usePhoto": "使用照片" },
     "personas": {
