@@ -1,0 +1,30 @@
+{
+  "name": "my-nook",
+  "private": true,
+  "version": "1.0.0",
+  "description": "MyNook - AI-Powered Interior Design",
+  "homepage": "https://my-nook.ai",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "deploy-check": "bash deploy-check.sh",
+    "type-check": "tsc --noEmit",
+    "build:production": "NODE_ENV=production vite build"
+  },
+  "dependencies": {
+    "@google/genai": "^1.17.0",
+    "@revenuecat/purchases-js": "^1.14.0",
+    "@supabase/supabase-js": "^2.58.0",
+    "framer-motion": "^12.23.12",
+    "react": "^19.1.1",
+    "react-dom": "^19.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.14.0",
+    "@vitejs/plugin-react": "^5.0.0",
+    "typescript": "~5.8.2",
+    "vite": "^6.2.0"
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "name": "AI Studio v4.4（完善会员登录，积分系统，权限）",
+  "description": "An AI-powered interior design studio that transforms your room photos into various creative themes and styles. / 一款由 AI 驅動的室內設計工作室，可將您的房間照片轉換為各種創意主題和風格。",
+  "requestFramePermissions": [
+    "camera"
+  ]
+}
