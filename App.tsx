@@ -1793,7 +1793,7 @@ const App: React.FC = () => {
         const isNewConversation = !previousBatch || previousBatch.type !== 'ai_advisor';
 
         if (!chat || personaChanged || imageChanged || isNewConversation) {
-            const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+            const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY });
             const newChat = ai.chats.create({
                 model: 'gemini-2.5-flash',
                 config: {
@@ -1930,7 +1930,7 @@ const App: React.FC = () => {
             if (batch.chatHistory && batch.templateIds.length === 1) {
                 const persona = ALL_ADVISORS.find(p => p.id === batch.templateIds[0]);
                 if (persona) {
-                    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+                    const ai = new GoogleGenAI({ apiKey: import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY });
                     const historyForChat: Content[] = batch.chatHistory.map(msg => ({
                         role: msg.role,
                         parts: [{ text: msg.text }]

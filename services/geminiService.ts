@@ -3,11 +3,12 @@ import { supabase } from '../lib/supabase';
 
 // Keep GoogleGenAI for text-only operations (AI Advisor)
 // These don't consume credits, so they can call Gemini directly
-if (!process.env.API_KEY) {
-    throw new Error("API_KEY environment variable is not set");
+const apiKey = import.meta.env.VITE_GEMINI_API_KEY || process.env.API_KEY;
+if (!apiKey) {
+    throw new Error("GEMINI API_KEY environment variable is not set");
 }
 
-const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+const ai = new GoogleGenAI({ apiKey });
 
 /**
  * Generates a text response from the model, with an optional image and system instruction.
