@@ -84,12 +84,10 @@ export const SubscriptionManagePage: React.FC = () => {
       setPurchasingTier(tier.tier);
       console.log('🛒 Upgrading subscription via Creem:', { tier: tier.tier, billingCycle });
 
-      // 跳转到 Creem 支付页面
-      redirectToSubscriptionCheckout(
+      // 跳转到安全的支付页面
+      await redirectToSubscriptionCheckout(
         tier.tier as 'pro' | 'premium' | 'business',
-        billingCycle,
-        user.id,
-        user.email || ''
+        billingCycle
       );
       
       // 注意：用户会被重定向，所以不会执行到这里
@@ -115,12 +113,8 @@ export const SubscriptionManagePage: React.FC = () => {
         throw new Error(`Unknown bundle ID: ${bundle.bundle_id}`);
       }
 
-      // 跳转到 Creem 支付页面
-      redirectToCreditPackCheckout(
-        size,
-        user.id,
-        user.email || ''
-      );
+      // 跳转到安全的支付页面
+      await redirectToCreditPackCheckout(size);
       
       // 注意：用户会被重定向，所以不会执行到这里
     } catch (error: any) {

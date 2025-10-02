@@ -50,28 +50,17 @@ serve(async (req) => {
     // Parse request body
     const { instruction, base64Images, templateIds }: GenerateImageRequest = await req.json();
     
+    // ⚡ 性能优化：并行处理模板查询和其他操作
+    const templatePromise = templateIds && templateIds.length > 0 
+      ? supabaseClient
+          .from('prompt_templates')
+          .select('prompt, name')
+          .in('template_id', templateIds)
+          .eq('is_active', true)
+      : Promise.resolve({ data: null, error: null });
+
     // 🔒 安全措施：从数据库获取模板的提示词，而不是从前端传递
-    // 这样前端永远看不到核心的提示词资产
     let fullInstruction = instruction;
-    
-    if (templateIds && templateIds.length > 0) {
-      // 查询选中模板的提示词
-      const { data: templates, error: templateError } = await supabaseClient
-        .from('prompt_templates')
-        .select('prompt, name')
-        .in('template_id', templateIds)
-        .eq('is_active', true);
-      
-      if (templateError) {
-        console.error('Error fetching templates:', templateError);
-      } else if (templates && templates.length > 0) {
-        // 组合所有模板的提示词
-        const templatePrompts = templates.map(t => t.prompt).join(' ');
-        fullInstruction = `${templatePrompts}\n\nAdditional instructions: ${instruction}`;
-        
-        console.log(`Using ${templates.length} template(s):`, templates.map(t => t.name).join(', '));
-      }
-    }
 
     if (!instruction || !base64Images || base64Images.length === 0) {
       throw new Error('Missing required parameters: instruction and base64Images');
@@ -109,44 +98,68 @@ serve(async (req) => {
       );
     }
 
-    // Create generation record (pending status)
-    const { data: generation, error: genError } = await supabaseClient
-      .from('generations')
-      .insert({
-        user_id: user.id,
-        type: 'free_canvas', // You can make this dynamic based on request
-        prompt: fullInstruction, // 使用完整的指令（包含模板提示词）
-        status: 'processing',
-        credits_used: CREDITS_REQUIRED,
-      })
-      .select()
-      .single();
+    // ⚡ 性能优化：并行处理数据库操作
+    const [templateResult, generationResult] = await Promise.all([
+      templatePromise,
+      // 创建generation记录
+      supabaseClient
+        .from('generations')
+        .insert({
+          user_id: user.id,
+          type: 'free_canvas', // You can make this dynamic based on request
+          prompt: fullInstruction, // 使用完整的指令（包含模板提示词）
+          status: 'processing',
+          credits_used: CREDITS_REQUIRED,
+        })
+        .select()
+        .single()
+    ]);
 
+    // 处理模板查询结果
+    const { data: templates, error: templateError } = templateResult;
+    if (templateError) {
+      console.error('Error fetching templates:', templateError);
+    } else if (templates && templates.length > 0) {
+      // 组合所有模板的提示词
+      const templatePrompts = templates.map(t => t.prompt).join(' ');
+      fullInstruction = `${templatePrompts}\n\nAdditional instructions: ${instruction}`;
+      
+      console.log(`Using ${templates.length} template(s):`, templates.map(t => t.name).join(', '));
+    }
+
+    // 处理generation创建结果
+    const { data: generation, error: genError } = generationResult;
     if (genError) {
       throw new Error('Failed to create generation record');
     }
 
-    // Deduct credits using the database function
-    const { data: deductResult, error: deductError } = await supabaseClient.rpc(
-      'deduct_credits',
-      {
-        user_id_param: user.id,
-        credits_amount: CREDITS_REQUIRED,
-        transaction_type: 'generation',
-        transaction_description: `AI Image Generation: ${instruction.substring(0, 50)}...`,
-        generation_id_param: generation.id,
+    // ⚡ 异步扣除积分，不阻塞API调用
+    const deductCreditsAsync = async () => {
+      const { data: deductResult, error: deductError } = await supabaseClient.rpc(
+        'deduct_credits',
+        {
+          user_id_param: user.id,
+          credits_amount: CREDITS_REQUIRED,
+          transaction_type: 'generation',
+          transaction_description: `AI Image Generation: ${instruction.substring(0, 50)}...`,
+          generation_id_param: generation.id,
+        }
+      );
+
+      if (deductError || !deductResult) {
+        console.error('Failed to deduct credits:', deductError);
+        // 异步标记为失败
+        await supabaseClient
+          .from('generations')
+          .update({ status: 'failed', error_message: 'Failed to deduct credits' })
+          .eq('id', generation.id);
+        throw new Error('Failed to deduct credits');
       }
-    );
+      return deductResult;
+    };
 
-    if (deductError || !deductResult) {
-      // Rollback: mark generation as failed
-      await supabaseClient
-        .from('generations')
-        .update({ status: 'failed', error_message: 'Failed to deduct credits' })
-        .eq('id', generation.id);
-
-      throw new Error('Failed to deduct credits');
-    }
+    // 启动异步积分扣除，但不等待
+    const creditsPromise = deductCreditsAsync();
 
     // Prepare Gemini API request
     const imageParts = base64Images.map((img) => ({

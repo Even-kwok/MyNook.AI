@@ -75,12 +75,10 @@ export const PricingPage: React.FC = () => {
                 userEmail: user.email
             });
 
-            // 跳转到 Creem 支付页面
-            redirectToSubscriptionCheckout(
+            // 跳转到安全的支付页面
+            await redirectToSubscriptionCheckout(
                 tier.tier as 'pro' | 'premium' | 'business',
-                billingType,
-                user.id,
-                user.email || ''
+                billingType
             );
             
             // 注意：用户会被重定向到 Creem，所以不会执行到这里
