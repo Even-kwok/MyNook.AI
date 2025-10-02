@@ -85,12 +85,18 @@ export const SubscriptionManagePage: React.FC = () => {
       console.log('🛒 Upgrading subscription via Creem:', { tier: tier.tier, billingCycle });
 
       // 跳转到安全的支付页面
-      await redirectToSubscriptionCheckout(
+      const result = await redirectToSubscriptionCheckout(
         tier.tier as 'pro' | 'premium' | 'business',
         billingCycle
       );
       
-      // 注意：用户会被重定向，所以不会执行到这里
+      if (!result.success) {
+        // 支付链接创建失败，显示错误并重置状态
+        alert(`Payment Error: ${result.error}`);
+        setPurchasingTier(null);
+      }
+      // 如果成功，用户会被重定向，不需要重置状态
+      
     } catch (error: any) {
       console.error('❌ Error redirecting to checkout:', error);
       alert(`Error: ${error.message}`);
@@ -114,9 +120,15 @@ export const SubscriptionManagePage: React.FC = () => {
       }
 
       // 跳转到安全的支付页面
-      await redirectToCreditPackCheckout(size);
+      const result = await redirectToCreditPackCheckout(size);
       
-      // 注意：用户会被重定向，所以不会执行到这里
+      if (!result.success) {
+        // 支付链接创建失败，显示错误并重置状态
+        alert(`Payment Error: ${result.error}`);
+        setPurchasingBundle(null);
+      }
+      // 如果成功，用户会被重定向，不需要重置状态
+      
     } catch (error: any) {
       console.error('❌ Error redirecting to credit purchase:', error);
       alert(`Error: ${error.message}`);

@@ -132,15 +132,21 @@ export const createCreditPayment = async (
 export const redirectToSubscriptionCheckout = async (
   tier: 'pro' | 'premium' | 'business',
   billingCycle: 'monthly' | 'yearly'
-): Promise<void> => {
-  const result = await createSubscriptionPayment(tier, billingCycle);
-  
-  if (result.success && result.paymentLink) {
-    console.log('🔒 Redirecting to secure payment:', { tier, billingCycle });
-    window.location.href = result.paymentLink;
-  } else {
-    console.error('❌ Failed to create payment link:', result.error);
-    alert(`Payment Error: ${result.error}`);
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const result = await createSubscriptionPayment(tier, billingCycle);
+    
+    if (result.success && result.paymentLink) {
+      console.log('🔒 Redirecting to secure payment:', { tier, billingCycle });
+      window.location.href = result.paymentLink;
+      return { success: true };
+    } else {
+      console.error('❌ Failed to create payment link:', result.error);
+      return { success: false, error: result.error };
+    }
+  } catch (error: any) {
+    console.error('❌ Payment service error:', error);
+    return { success: false, error: error.message || 'Payment service unavailable' };
   }
 };
 
@@ -150,15 +156,21 @@ export const redirectToSubscriptionCheckout = async (
  */
 export const redirectToCreditPackCheckout = async (
   size: 'small' | 'medium' | 'large'
-): Promise<void> => {
-  const result = await createCreditPayment(size);
-  
-  if (result.success && result.paymentLink) {
-    console.log('🔒 Redirecting to secure credit payment:', { size });
-    window.location.href = result.paymentLink;
-  } else {
-    console.error('❌ Failed to create credit payment link:', result.error);
-    alert(`Payment Error: ${result.error}`);
+): Promise<{ success: boolean; error?: string }> => {
+  try {
+    const result = await createCreditPayment(size);
+    
+    if (result.success && result.paymentLink) {
+      console.log('🔒 Redirecting to secure credit payment:', { size });
+      window.location.href = result.paymentLink;
+      return { success: true };
+    } else {
+      console.error('❌ Failed to create credit payment link:', result.error);
+      return { success: false, error: result.error };
+    }
+  } catch (error: any) {
+    console.error('❌ Credit payment service error:', error);
+    return { success: false, error: error.message || 'Payment service unavailable' };
   }
 };
 

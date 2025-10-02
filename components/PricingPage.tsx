@@ -76,13 +76,18 @@ export const PricingPage: React.FC = () => {
             });
 
             // 跳转到安全的支付页面
-            await redirectToSubscriptionCheckout(
+            const result = await redirectToSubscriptionCheckout(
                 tier.tier as 'pro' | 'premium' | 'business',
                 billingType
             );
             
-            // 注意：用户会被重定向到 Creem，所以不会执行到这里
-            // 支付完成后，Creem 会将用户重定向回我们的 success_url
+            if (!result.success) {
+                // 支付链接创建失败，显示错误并重置状态
+                alert(`Payment Error: ${result.error}`);
+                setPurchasing(false);
+            }
+            // 如果成功，用户会被重定向，不需要重置状态
+            
         } catch (error: any) {
             console.error('❌ Error redirecting to checkout:', error);
             alert(`Error: ${error.message}`);
