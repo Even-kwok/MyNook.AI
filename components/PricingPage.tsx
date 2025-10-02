@@ -52,7 +52,7 @@ const getFeatureList = (tier: SubscriptionTier): string[] => {
 
 export const PricingPage: React.FC = () => {
     const [billingCycle, setBillingCycle] = useState<'monthly' | 'yearly'>('yearly'); // Default to yearly
-    const [purchasing, setPurchasing] = useState(false);
+    const [purchasingTier, setPurchasingTier] = useState<string | null>(null); // 改为跟踪具体的tier
     const { tiers, loading, error } = useSubscriptionTiers();
     const { user, profile, refreshProfile } = useAuth();
 
@@ -62,11 +62,11 @@ export const PricingPage: React.FC = () => {
             return;
         }
 
-        // Prevent duplicate clicks
-        if (purchasing) return;
+        // Prevent duplicate clicks for this specific tier
+        if (purchasingTier === tier.tier) return;
 
         try {
-            setPurchasing(true);
+            setPurchasingTier(tier.tier); // 设置当前正在购买的tier
             
             console.log('🛒 Initiating Creem checkout:', {
                 tier: tier.tier,
@@ -84,14 +84,14 @@ export const PricingPage: React.FC = () => {
             if (!result.success) {
                 // 支付链接创建失败，显示错误并重置状态
                 alert(`Payment Error: ${result.error}`);
-                setPurchasing(false);
+                setPurchasingTier(null); // 重置为null
             }
             // 如果成功，用户会被重定向，不需要重置状态
             
         } catch (error: any) {
             console.error('❌ Error redirecting to checkout:', error);
             alert(`Error: ${error.message}`);
-            setPurchasing(false);
+            setPurchasingTier(null); // 重置为null
         }
     };
 
@@ -220,14 +220,14 @@ export const PricingPage: React.FC = () => {
 
                                 <button
                                     onClick={() => handleSubscribe(tier, billingCycle)}
-                                    disabled={isCurrentPlan || purchasing}
+                                    disabled={isCurrentPlan || purchasingTier === tier.tier}
                                     className={`mt-8 w-full py-3 px-6 rounded-lg font-semibold text-center transition-all duration-200 ${
-                                        isCurrentPlan || purchasing
+                                        isCurrentPlan || purchasingTier === tier.tier
                                             ? 'bg-slate-600 text-slate-400 cursor-not-allowed'
                                             : 'bg-indigo-500 text-white hover:bg-indigo-400 transform hover:scale-[1.02]'
                                     }`}
                                 >
-                                    {purchasing ? (
+                                    {purchasingTier === tier.tier ? (
                                         <span className="flex items-center justify-center gap-2">
                                             <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                                                 <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
