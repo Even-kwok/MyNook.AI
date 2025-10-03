@@ -10,10 +10,16 @@ yarn-error.log*
 .env.development.local
 .env.test.local
 .env.production.local
+.env*.local
+.env.production
 
 # Build outputs
 dist/
 build/
+
+# Logs
+logs
+*.log
 
 # IDE files
 .vscode/
@@ -29,10 +35,6 @@ build/
 .Trashes
 ehthumbs.db
 Thumbs.db
-
-# Logs
-logs
-*.log
 
 # Runtime data
 pids
@@ -61,9 +63,6 @@ jspm_packages/
 # Yarn Integrity file
 .yarn-integrity
 
-# dotenv environment variables file
-.env
-
 # parcel-bundler cache (https://parceljs.org/)
 .cache
 .parcel-cache
@@ -91,3 +90,28 @@ jspm_packages/
 
 # Stores VSCode versions used for testing VSCode extensions
 .vscode-test
+
+# TypeScript
+*.tsbuildinfo
+
+# Supabase
+.supabase/
+
+# Temporary files
+temp_*
+debug_*
+test_*
+
+# SQL files (sensitive)
+*.sql
+
+# Documentation files (keep README.md but exclude others)
+docs/
+*_GUIDE.md
+*_FIX*.md
+*_COMPLETE.md
+TROUBLESHOOT*.md
+EMERGENCY*.md
+DIAGNOSE*.md
+ISSUE*.md
+QUICK*.md
