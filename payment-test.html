@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MyNook.AI - 支付测试</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 min-h-screen py-8">
+    <div class="max-w-4xl mx-auto px-4">
+        <h1 class="text-3xl font-bold text-center mb-8">MyNook.AI 支付测试</h1>
+        
+        <!-- 订阅计划 -->
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Pro 计划</h3>
+                <p class="text-gray-600 mb-4">适合个人用户</p>
+                <div class="space-y-2 mb-6">
+                    <button onclick="openPayment('pro', 'monthly')" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                        月付 $19.99/月
+                    </button>
+                    <button onclick="openPayment('pro', 'yearly')" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                        年付 $199.99/年 (省17%)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Premium 计划</h3>
+                <p class="text-gray-600 mb-4">适合专业设计师</p>
+                <div class="space-y-2 mb-6">
+                    <button onclick="openPayment('premium', 'monthly')" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                        月付 $49.99/月
+                    </button>
+                    <button onclick="openPayment('premium', 'yearly')" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                        年付 $499.99/年 (省17%)
+                    </button>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-semibold mb-4">Business 计划</h3>
+                <p class="text-gray-600 mb-4">适合团队和企业</p>
+                <div class="space-y-2 mb-6">
+                    <button onclick="openPayment('business', 'monthly')" 
+                            class="w-full bg-blue-600 text-white py-2 px-4 rounded hover:bg-blue-700">
+                        月付 $99.99/月
+                    </button>
+                    <button onclick="openPayment('business', 'yearly')" 
+                            class="w-full bg-green-600 text-white py-2 px-4 rounded hover:bg-green-700">
+                        年付 $999.99/年 (省17%)
+                    </button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- 积分包 -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h3 class="text-xl font-semibold mb-4">积分包</h3>
+            <div class="grid md:grid-cols-3 gap-4">
+                <button onclick="openCreditPayment('small')" 
+                        class="bg-purple-600 text-white py-3 px-4 rounded hover:bg-purple-700">
+                    100 积分 - $9.99
+                </button>
+                <button onclick="openCreditPayment('medium')" 
+                        class="bg-purple-600 text-white py-3 px-4 rounded hover:bg-purple-700">
+                    300 积分 - $24.99
+                </button>
+                <button onclick="openCreditPayment('large')" 
+                        class="bg-purple-600 text-white py-3 px-4 rounded hover:bg-purple-700">
+                    1000 积分 - $69.99
+                </button>
+            </div>
+        </div>
+        
+        <!-- 测试信息 -->
+        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+            <h4 class="font-semibold text-yellow-800 mb-2">测试说明</h4>
+            <ul class="text-yellow-700 space-y-1">
+                <li>• 这是支付系统测试页面</li>
+                <li>• 点击按钮会打开Creem支付页面</li>
+                <li>• 支付成功后会自动更新用户订阅和积分</li>
+                <li>• Webhook会处理支付回调</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // Creem 产品 ID 映射
+        const CREEM_PRODUCTS = {
+            subscriptions: {
+                pro: {
+                    monthly: 'prod_2JlRhCPx3dJVaQUNLRgo6D',
+                    yearly: 'prod_43bA82tdR38NzQksz6fHxH',
+                },
+                premium: {
+                    monthly: 'prod_3wRnKHJa6LSF5afsd1QjEG',
+                    yearly: 'prod_18rfRuIGJVtWPeIIfZpLWA',
+                },
+                business: {
+                    monthly: 'prod_wMGy2WQe6Kv5PmTZLjcsn',
+                    yearly: 'prod_6065m1QjyimGZ8lg15pqB5',
+                },
+            },
+            credits: {
+                small: 'prod_22tEVFxJtOQU8cm5H10bZc',
+                medium: 'prod_3E171a5TGDhmBhtYM0Gbk3',
+                large: 'prod_MmthQ5RlRKNalU3rEsowB',
+            },
+        };
+
+        function openPayment(tier, billingCycle) {
+            const productId = CREEM_PRODUCTS.subscriptions[tier][billingCycle];
+            const paymentUrl = `https://www.creem.io/payment/${productId}?success_url=${encodeURIComponent('https://www.my-nook.ai/?payment=success')}&cancel_url=${encodeURIComponent('https://www.my-nook.ai/?payment=cancelled')}`;
+            
+            console.log('Opening payment for:', tier, billingCycle);
+            console.log('Product ID:', productId);
+            console.log('Payment URL:', paymentUrl);
+            
+            window.open(paymentUrl, '_blank');
+        }
+
+        function openCreditPayment(size) {
+            const productId = CREEM_PRODUCTS.credits[size];
+            const paymentUrl = `https://www.creem.io/payment/${productId}?success_url=${encodeURIComponent('https://www.my-nook.ai/?payment=success')}&cancel_url=${encodeURIComponent('https://www.my-nook.ai/?payment=cancelled')}`;
+            
+            console.log('Opening credit payment for:', size);
+            console.log('Product ID:', productId);
+            console.log('Payment URL:', paymentUrl);
+            
+            window.open(paymentUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
+

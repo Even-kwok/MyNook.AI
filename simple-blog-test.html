@@ -1,0 +1,246 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simple Blog Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.6; }
+        .section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 5px; }
+        .success { background-color: #d4edda; border-color: #c3e6cb; }
+        .error { background-color: #f8d7da; border-color: #f5c6cb; }
+        .warning { background-color: #fff3cd; border-color: #ffeaa7; }
+        pre { background: #f8f9fa; padding: 10px; border-radius: 3px; overflow-x: auto; font-size: 12px; }
+        button { padding: 10px 20px; margin: 5px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 5px; }
+        input { width: 100%; padding: 8px; margin: 5px 0; border: 1px solid #ddd; border-radius: 3px; }
+        .credentials-form { background: #f8f9fa; padding: 20px; border-radius: 5px; margin: 10px 0; }
+    </style>
+</head>
+<body>
+    <h1>Simple Blog Creation Test</h1>
+    
+    <div class="section warning">
+        <h3>📋 Instructions</h3>
+        <p>This tool will help diagnose the blog creation issue. Please follow these steps:</p>
+        <ol>
+            <li>Enter your Supabase credentials below</li>
+            <li>Click "Run All Tests" to check everything</li>
+            <li>Review the results to identify the problem</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h3>🔑 Supabase Credentials</h3>
+        <div class="credentials-form">
+            <div>
+                <label><strong>Supabase URL:</strong></label>
+                <input type="text" id="supabase-url" placeholder="https://your-project.supabase.co">
+                <small>Find this in your Supabase project settings → API</small>
+            </div>
+            <div style="margin-top: 15px;">
+                <label><strong>Supabase Anon Key:</strong></label>
+                <input type="text" id="supabase-key" placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...">
+                <small>Find this in your Supabase project settings → API → anon/public key</small>
+            </div>
+            <button onclick="runAllTests()" style="margin-top: 15px;">🚀 Run All Tests</button>
+            <button onclick="clearResults()" style="background: #6c757d;">🗑️ Clear Results</button>
+        </div>
+    </div>
+
+    <div id="results-container" style="display: none;">
+        <div class="section">
+            <h3>📊 Test Results</h3>
+            <div id="test-results"></div>
+        </div>
+    </div>
+
+    <script>
+        let supabase = null;
+
+        async function runAllTests() {
+            const url = document.getElementById('supabase-url').value.trim();
+            const key = document.getElementById('supabase-key').value.trim();
+            
+            if (!url || !key) {
+                alert('Please enter both Supabase URL and API key');
+                return;
+            }
+
+            // Show results container
+            document.getElementById('results-container').style.display = 'block';
+            const resultsDiv = document.getElementById('test-results');
+            resultsDiv.innerHTML = '<div style="color: #007bff;">🔄 Running tests...</div>';
+
+            const results = [];
+
+            try {
+                // Initialize Supabase
+                supabase = window.supabase.createClient(url, key);
+                results.push({ test: 'Supabase Initialization', status: 'success', message: 'Client initialized successfully' });
+
+                // Test 1: Check connection
+                try {
+                    const { data, error } = await supabase.from('user_profiles').select('count').limit(1);
+                    if (error) throw error;
+                    results.push({ test: 'Database Connection', status: 'success', message: 'Connected to database' });
+                } catch (err) {
+                    results.push({ test: 'Database Connection', status: 'error', message: err.message });
+                }
+
+                // Test 2: Check authentication
+                try {
+                    const { data: { user }, error } = await supabase.auth.getUser();
+                    if (error) throw error;
+                    if (user) {
+                        results.push({ test: 'User Authentication', status: 'success', message: `Authenticated as: ${user.email}` });
+                    } else {
+                        results.push({ test: 'User Authentication', status: 'warning', message: 'No user authenticated - this may cause blog creation to fail' });
+                    }
+                } catch (err) {
+                    results.push({ test: 'User Authentication', status: 'error', message: err.message });
+                }
+
+                // Test 3: Check blog categories
+                try {
+                    const { data, error } = await supabase
+                        .from('blog_categories')
+                        .select('*')
+                        .eq('is_active', true);
+                    
+                    if (error) throw error;
+                    results.push({ 
+                        test: 'Blog Categories', 
+                        status: 'success', 
+                        message: `Found ${data.length} categories`,
+                        data: data
+                    });
+                } catch (err) {
+                    results.push({ test: 'Blog Categories', status: 'error', message: err.message });
+                }
+
+                // Test 4: Check blog tags
+                try {
+                    const { data, error } = await supabase
+                        .from('blog_tags')
+                        .select('*')
+                        .eq('is_active', true);
+                    
+                    if (error) throw error;
+                    results.push({ 
+                        test: 'Blog Tags', 
+                        status: 'success', 
+                        message: `Found ${data.length} tags`,
+                        data: data
+                    });
+                } catch (err) {
+                    results.push({ test: 'Blog Tags', status: 'error', message: err.message });
+                }
+
+                // Test 5: Test blog post creation (dry run)
+                try {
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) {
+                        results.push({ test: 'Blog Post Creation Test', status: 'warning', message: 'Cannot test - user not authenticated' });
+                    } else {
+                        const testPost = {
+                            title: 'Test Post ' + Date.now(),
+                            content: 'Test content',
+                            slug: 'test-post-' + Date.now(),
+                            author_id: user.id,
+                            status: 'draft'
+                        };
+
+                        const { data, error } = await supabase
+                            .from('blog_posts')
+                            .insert(testPost)
+                            .select()
+                            .single();
+
+                        if (error) throw error;
+
+                        // Clean up test post
+                        await supabase.from('blog_posts').delete().eq('id', data.id);
+
+                        results.push({ 
+                            test: 'Blog Post Creation Test', 
+                            status: 'success', 
+                            message: 'Successfully created and deleted test post'
+                        });
+                    }
+                } catch (err) {
+                    results.push({ test: 'Blog Post Creation Test', status: 'error', message: err.message });
+                }
+
+            } catch (err) {
+                results.push({ test: 'Supabase Initialization', status: 'error', message: err.message });
+            }
+
+            // Display results
+            displayResults(results);
+        }
+
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('test-results');
+            let html = '';
+
+            results.forEach(result => {
+                const statusClass = result.status === 'success' ? 'success' : 
+                                  result.status === 'warning' ? 'warning' : 'error';
+                const statusIcon = result.status === 'success' ? '✅' : 
+                                 result.status === 'warning' ? '⚠️' : '❌';
+
+                html += `
+                    <div class="section ${statusClass}">
+                        <h4>${statusIcon} ${result.test}</h4>
+                        <p>${result.message}</p>
+                        ${result.data ? `<pre>${JSON.stringify(result.data, null, 2)}</pre>` : ''}
+                    </div>
+                `;
+            });
+
+            // Add diagnosis
+            html += generateDiagnosis(results);
+
+            resultsDiv.innerHTML = html;
+        }
+
+        function generateDiagnosis(results) {
+            let diagnosis = '<div class="section warning"><h3>🔍 Diagnosis & Next Steps</h3>';
+            
+            const authResult = results.find(r => r.test === 'User Authentication');
+            const categoriesResult = results.find(r => r.test === 'Blog Categories');
+            const createResult = results.find(r => r.test === 'Blog Post Creation Test');
+
+            if (authResult && authResult.status !== 'success') {
+                diagnosis += '<p><strong>❌ Authentication Issue:</strong> You need to log in to your application first. Go to your app and sign in, then run this test again.</p>';
+            }
+
+            if (categoriesResult && categoriesResult.status === 'error') {
+                diagnosis += '<p><strong>❌ Blog Tables Missing:</strong> The blog database tables are not set up. You need to run the blog migrations in Supabase SQL editor.</p>';
+            }
+
+            if (categoriesResult && categoriesResult.status === 'success' && categoriesResult.data && categoriesResult.data.length === 0) {
+                diagnosis += '<p><strong>⚠️ No Categories:</strong> Blog categories table exists but is empty. Run the add_sample_blog_data.sql script.</p>';
+            }
+
+            if (createResult && createResult.status === 'error') {
+                diagnosis += `<p><strong>❌ Creation Failed:</strong> ${createResult.message}</p>`;
+            }
+
+            if (results.every(r => r.status === 'success')) {
+                diagnosis += '<p><strong>✅ All Tests Passed:</strong> Your blog system should be working correctly. Try creating a post in your application.</p>';
+            }
+
+            diagnosis += '</div>';
+            return diagnosis;
+        }
+
+        function clearResults() {
+            document.getElementById('results-container').style.display = 'none';
+            document.getElementById('test-results').innerHTML = '';
+        }
+    </script>
+</body>
+</html>
+
